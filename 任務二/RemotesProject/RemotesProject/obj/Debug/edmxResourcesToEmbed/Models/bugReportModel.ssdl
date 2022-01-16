@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="TicketTrackingModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+  <EntityType Name="Account">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Account" Type="varchar" MaxLength="100" Nullable="false" />
+    <Property Name="Password" Type="varchar" MaxLength="100" />
+    <Property Name="SiteRole" Type="int" Nullable="false" />
+    <Property Name="CreateDate" Type="datetime" Nullable="false" />
+  </EntityType>
+  <!--產生期間發現錯誤:
+警告 6002: 資料表/檢視 'TicketTracking.dbo.ReportBug' 未定義主索引鍵。已推斷此索引鍵，並將定義建立成唯讀的資料表/檢視。-->
+  <EntityType Name="ReportBug">
+    <Key>
+      <PropertyRef Name="ID" />
+      <PropertyRef Name="Title" />
+      <PropertyRef Name="Description" />
+      <PropertyRef Name="CreateTime" />
+      <PropertyRef Name="bugStatus" />
+    </Key>
+    <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Title" Type="varchar" MaxLength="100" Nullable="false" />
+    <Property Name="Description" Type="varchar" MaxLength="500" Nullable="false" />
+    <Property Name="CreateTime" Type="datetime" Nullable="false" />
+    <Property Name="bugStatus" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityContainer Name="TicketTrackingModelStoreContainer">
+    <EntitySet Name="Account" EntityType="Self.Account" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="ReportBug" EntityType="Self.ReportBug" store:Type="Tables" store:Schema="dbo">
+      <DefiningQuery>SELECT 
+    [ReportBug].[ID] AS [ID], 
+    [ReportBug].[Title] AS [Title], 
+    [ReportBug].[Description] AS [Description], 
+    [ReportBug].[CreateTime] AS [CreateTime], 
+    [ReportBug].[bugStatus] AS [bugStatus]
+    FROM [dbo].[ReportBug] AS [ReportBug]</DefiningQuery>
+    </EntitySet>
+  </EntityContainer>
+</Schema>

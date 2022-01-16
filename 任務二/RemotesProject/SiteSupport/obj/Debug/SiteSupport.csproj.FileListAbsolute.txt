@@ -1,0 +1,6 @@
+C:\Users\csabc\Desktop\RemotesProject\SiteSupport\bin\Debug\SiteSupport.dll
+C:\Users\csabc\Desktop\RemotesProject\SiteSupport\bin\Debug\SiteSupport.pdb
+C:\Users\csabc\Desktop\RemotesProject\SiteSupport\obj\Debug\SiteSupport.csproj.CoreCompileInputs.cache
+C:\Users\csabc\Desktop\RemotesProject\SiteSupport\obj\Debug\SiteSupport.dll
+C:\Users\csabc\Desktop\RemotesProject\SiteSupport\obj\Debug\SiteSupport.pdb
+C:\Users\csabc\Desktop\RemotesProject\SiteSupport\obj\Debug\SiteSupport.csprojAssemblyReference.cache

@@ -1,0 +1,379 @@
+﻿@model IEnumerable<SiteSupport.Model.ReportBugViewModel>
+@{
+    ViewBag.Title = "Home Page";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    SiteSupport.Model.UserinfoViewModel session = (SiteSupport.Model.UserinfoViewModel)Session["UserInfo"];
+}
+<div style="display:flex;align-items:center;justify-content:center;">
+    <h1>Bug List</h1>
+</div>
+<link href="~/OpenSource/DataTables/DataTables-1.11.3/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="~/OpenSource/DataTables/Buttons-2.2.1/css/buttons.dataTables.min.css" rel="stylesheet" />
+<style>
+
+    .myMOUSE {
+        cursor: pointer;
+    }
+
+    .maindiv {
+        margin-top: 3%;
+    }
+</style>
+<script>
+    var isQA = false;
+    var isRD = false;
+</script>
+<div style="display:flex;align-items:center;justify-content:center;margin-top:3%;">
+    <div style="width:60%;">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#新增" onclick="showaddModal();" id="insertbtn"><i class="fas fa-plus fa-1x"></i></button>
+        <input type="hidden" id="bugidtmp" />
+        <input type="hidden" id="useraccount" value="@session.Account" />
+        <table id="bugTable" class="">
+            <thead>
+                <tr>
+                    <th style="text-align: center; width: 8%;">@Html.DisplayNameFor(m => m.ID)</th>
+                    <th style="text-align: center; width: 25%;">@Html.DisplayNameFor(m => m.Title)</th>
+                    <th style="width:40%;">@Html.DisplayNameFor(m => m.bugDes)</th>
+                    <th style="text-align: center; width: 13%;">@Html.DisplayNameFor(m => m.CreateTime)</th>
+                    <th style="text-align: center; width: 8%;">@Html.DisplayNameFor(m => m.bugStatus)</th>
+                    <th style="width:6%;"></th>
+                </tr>
+            </thead>
+            @foreach (var item in Model)
+            {
+                <tr id="bug_@Html.DisplayFor(modelItem => item.ID)">
+                    <td style="text-align:center;width:8%;">
+                        @Html.DisplayFor(modelItem => item.ID)
+                    </td>
+                    <td style="text-align:center;width:25%;">
+                        @Html.DisplayFor(modelItem => item.Title)
+                    </td>
+                    <td style="width: 40%;">
+                        @Html.DisplayFor(modelItem => item.bugDes)
+                    </td>
+                    <td style="text-align:center;width:13%;">
+                        @Html.DisplayFor(modelItem => item.CreateTimeStr)
+                    </td>
+                    <td style="text-align:center;width:8%;" data-sta="@Html.DisplayFor(modelItem => item.bugStatus)">
+                        @Html.DisplayFor(modelItem => item.bugStatusstr)
+                    </td>
+                    <td style="width:6%;">
+                        <i class="fas fa-edit fa myMOUSE" style="margin-right: 10%; color: dimgrey;" onclick="editSetValue('bug_@Html.DisplayFor(modelItem => item.ID)');" data-toggle="modal" data-target="#編輯"></i>
+                        <i class="fas fa-trash-alt fa myMOUSE" style="color: dimgrey;" onclick="deletebug(@Html.DisplayFor(modelItem => item.ID));"></i>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>
+
+
+@*新增*@
+<div class="modal fade bd-example-modal-lg" id="新增" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="col-lg-12 maindiv" style="display:flex;align-items:center;">
+                    <label class="col-lg-1 control-label" style="padding: 0; margin: 0; display: flex; align-items: center;"><i style="color:red;">*</i>標題</label>
+                    <div class="col-lg-11">
+                        <input type="text" class="form-control" id="bugtitle" name="Progress" style="text-align:right;margin-right:0px;text-align:left" autocomplete="off" required>
+                        <div class="invalid-feedback">
+                            請輸入標題
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-12 maindiv" style="display:flex;align-items:center;">
+                    <label class="col-lg-1 control-label" style="padding: 0; margin: 0; display: flex; align-items: center;"><i style="color:red;">*</i>敘述</label>
+                    <div class="col-lg-11">
+                        <input type="text" class="form-control" id="bugdes" name="Progress" style="text-align:right;margin-right:0px;text-align:left" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="col-lg-12 maindiv" style="display:flex;align-items:center;">
+                    <label class="col-lg-1 control-label" style="padding: 0; margin: 0; display: flex; align-items: center;">狀態</label>
+                    <div class="col-lg-11">
+                        <select class="form-control" id="mystatus" name="mystatus">
+                            <option value="0">未開始</option>
+                            <option value="1">修改中</option>
+                            <option value="2">已完成</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top:5%;">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary" data-dismiss="" onclick="insertbug();">儲存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@*編輯*@
+<div class="modal fade bd-example-modal-lg" id="編輯" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="col-lg-12 maindiv" style="display:flex;align-items:center;">
+                    <label class="col-lg-1 control-label" style="padding: 0; margin: 0; display: flex; align-items: center;"><i style="color:red;">*</i>標題</label>
+                    <div class="col-lg-11">
+                        <input type="text" class="form-control" id="bugtitle_edit" name="Progress" style="text-align:right;margin-right:0px;text-align:left" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="col-lg-12 maindiv" style="display:flex;align-items:center;">
+                    <label class="col-lg-1 control-label" style="padding: 0; margin: 0; display: flex; align-items: center;"><i style="color:red;">*</i>敘述</label>
+                    <div class="col-lg-11">
+                        <input type="text" class="form-control" id="bugdes_edit" name="Progress" style="text-align:right;margin-right:0px;text-align:left" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="col-lg-12 maindiv" style="display:flex;align-items:center;">
+                    <label class="col-lg-1 control-label" style="padding: 0; margin: 0; display: flex; align-items: center;">狀態</label>
+                    <div class="col-lg-11">
+                        <select class="form-control" id="mystatus_edit" name="mystatus_edit">
+                            <option value="0">未開始</option>
+                            <option value="1">修改中</option>
+                            <option value="2">已完成</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top:5%;">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary" data-dismiss="modal" onclick="savebug();">儲存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script src="~/OpenSource/DataTables/DataTables-1.11.3/js/jquery.dataTables.min.js"></script>
+<script src="~/OpenSource/DataTables/Buttons-2.2.1/js/dataTables.buttons.min.js"></script>
+<script>
+    var bugtable;
+    $(document).ready(function () {
+        //$('#bugTable').DataTable();
+        bugtable = $('#bugTable').DataTable({
+            "order": [[3, "asc"]],
+            //"order": [[0, "desc"]],
+            "bPaginate": true, // 顯示換頁
+            "searching": true, // 顯示搜尋
+            "info": true, // 顯示資訊
+            "fixedHeader": true, // 標題置頂
+            "scrollY": "75vh", //表格内容部分高度设置为窗口的一半時，出現滾輪
+
+            "pageLength": 100,
+            "lengthMenu": [[10, 20, 50, 100], [10, 20, 50, 100]],//下拉選單每頁顯示幾筆
+            "bProcessing": true, //DataTables載入資料時，是否顯示‘進度’提示
+
+            dom: 'Bfrt',
+            //buttons: [
+            //    {
+            //        text: 'My button',
+            //        action: function (e, dt, node, config) {
+            //            alert('Button activated');
+            //        }
+            //    }
+            //],
+
+            language: {
+                "sProcessing": "處理中...",
+                "sLengthMenu": "顯示 _MENU_ 筆資料",
+                "sZeroRecords": "查無資料",
+                "sInfo": "顯示第 _START_ 至 _END_ 筆结果，共 _TOTAL_ 筆",
+                "sInfoEmpty": "顯示第 0 至 0 筆结果，共 0 筆",
+                "sInfoFiltered": "(由 _MAX_ 筆结果篩選)",
+                "sInfoPostFix": "",
+                "sSearch": "搜尋:",
+                "sUrl": "",
+                "sEmptyTable": "資料表無資料",
+                "sLoadingRecords": "載入中...",
+                "sInfoThousands": ",",
+                "oPaginate": {
+                    "sFirst": "首頁",
+                    "sPrevious": "上一頁",
+                    "sNext": "下一頁",
+                    "sLast": "尾頁"
+                },
+                "oAria": {
+                    "sSortAscending": ": 以升序排列此列",
+                    "sSortDescending": ": 以降序排列此列"
+                }
+            },
+        });
+
+
+        getAuth();
+        function getAuth() {
+            var acctmp = document.getElementById('useraccount').value;
+            var data = { Account: acctmp }
+            $.ajax({
+                url: "../api/Auth/bugAuth",
+                method: "Get",
+                contentType: "application/json;charset=UTF-8",
+                //dataType: "json",
+                data: data,
+                success: function (result) {
+                    isQA = result.isQA;
+                    isRD = result.isRD;
+                    $.notify(result, 'success');
+                    if (isQA) {
+                        document.getElementById('insertbtn').disabled = false;
+                        document.getElementById('bugtitle_edit').disabled = false;
+                        document.getElementById('bugdes_edit').disabled = false;
+                    }
+                    if (isRD) {
+                        document.getElementById('insertbtn').disabled = true;
+                        document.getElementById('bugtitle_edit').disabled = true;
+                        document.getElementById('bugdes_edit').disabled = true;
+                    }
+                },
+                error: function (result) {
+                    $.notify("未能正確讀取資料，請重新整理後在操作", "error");
+                },
+            })
+        }
+    });
+
+    function editSetValue(item) {
+        var ele = document.getElementById(item);
+        document.getElementById('bugtitle_edit').value = ele.children[1].innerText;
+        document.getElementById('bugdes_edit').value = ele.children[2].innerText;
+        $('select[name=mystatus_edit]').val(ele.children[4].dataset.sta);
+        document.getElementById('bugidtmp').value = item.split('_')[1];
+    }
+
+    function showaddModal() {
+        document.getElementById('bugtitle').value = "";
+        document.getElementById('bugdes').value = "";
+        $('select[name=mystatus]').val(0);
+    }
+
+
+
+    function insertbug() {
+        var titletmp = document.getElementById('bugtitle').value;
+        var bugdestmp = document.getElementById('bugdes').value;
+        var mystatustmp = document.getElementById('mystatus').value;
+        if (titletmp.length == 0) {
+            $.notify('標題不能為空');
+            return;
+        }
+        if (bugdestmp.length == 0) {
+            $.notify('敘述不能為空');
+            return;
+        }
+
+        //$.notify(mystatustmp,'success');
+        var data = { Title: titletmp, bugDes: bugdestmp, bugStatus: mystatustmp }
+        $.ajax({
+            url: "../api/bugtracking/BugInsert",
+            method: "Post",
+            contentType: "application/json;charset=UTF-8",
+            dataType: "json",
+            data: JSON.stringify(
+                data
+            ),
+            success: function (result) {
+                location.reload();
+
+                //$.notify(result, "success");
+                //var ttt = "";
+                //bugtable.row.add([
+                //    result.ID,
+                //    result.Title,
+                //    result.bugDes,
+                //    result.CreateTimeStr,
+                //    result.bugStatusstr,
+                //    '<i class="fas fa-edit fa myMOUSE" style="margin-right: 10%; color: dimgrey;" onclick="editSetValue(bug_' + result.ID+');" data-toggle="modal" data-target="#編輯"></i>'+
+                //        '<i class="fas fa-trash-alt fa myMOUSE" style="color: dimgrey;"></i>'
+                //]).draw();
+            },
+            error: function (result) {
+                $.notify("未能正確讀取資料，請重新整理後在操作", "error");
+            },
+        })
+    }
+
+    function savebug() {
+        var titletmp = document.getElementById('bugtitle_edit').value;
+        var bugdestmp = document.getElementById('bugdes_edit').value;
+        var mystatustmp = document.getElementById('mystatus_edit').value;
+        if (titletmp.length == 0) {
+            $.notify('標題不能為空');
+            return;
+        }
+        if (bugdestmp.length == 0) {
+            $.notify('敘述不能為空');
+            return;
+        }
+        var bugidtmp = document.getElementById('bugidtmp').value;
+        var data = { ID: bugidtmp, Title: titletmp, bugDes: bugdestmp, bugStatus: mystatustmp }
+        $.ajax({
+            url: "../api/bugtracking/BugUpdate",
+            method: "Put",
+            contentType: "application/json;charset=UTF-8",
+            //dataType: "json",
+            data: JSON.stringify(
+                data
+            ),
+            success: function (result) {
+                var ele = document.getElementById('bug_' + bugidtmp).children;
+                ele[1].innerText = titletmp;
+                ele[2].innerText = bugdestmp;
+                ele[4].innerText = $("#mystatus_edit").find("option:selected").text();         
+            },
+            error: function (result) {
+                $.notify("未能正確讀取資料，請重新整理後在操作", "error");
+            },
+        })
+    }
+
+    function deletebug(bugid) {
+        if (isRD)
+            return;
+        var data = { ID: bugid}
+        if (confirm("確定要刪除嗎")) {
+            $.ajax({
+                url: "../api/bugtracking/BugDelete",
+                method: "DELETE",
+                contentType: "application/json;charset=UTF-8",
+                //dataType: "json",
+                data: JSON.stringify(
+                    data
+                ),
+                success: function (result) {
+
+                    bugtable.row($('#bug_' + bugid).remove().draw());
+                    $.notify("刪除成功", "success");
+                },
+                error: function (result) {
+                    $.notify("未能正確讀取資料，請重新整理後在操作", "error");
+                },
+            })
+
+        } else {
+
+        }
+
+
+
+
+
+
+
+
+
+    }
+
+</script>
